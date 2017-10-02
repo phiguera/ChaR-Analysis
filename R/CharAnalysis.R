@@ -33,3 +33,7 @@ require(paleofire)
 
 # 1. Load data
 load("data/CO_charData.RData")
+
+# 2. Pretreatment
+
+# 3. 
