@@ -26,6 +26,10 @@
 #' @keywords IO connection
 #' @export
 
-CharAnalysis <- function(x){
-  
-}
+CharAnalysis <- function(x){                      }
+
+require(paleofire)
+
+
+# 1. Load data
+load("data/CO_charData.RData")
