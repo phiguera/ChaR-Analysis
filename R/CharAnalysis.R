@@ -41,10 +41,14 @@ output.dir <- file.path(".", "Cores", site.name, "output")
 } else {
   output.dir <- file.path(".", "Cores", site.name, paste0("output", runname))
 }
-dir.create(output.dir)
 
+if (!dir.exists(output.dir)) {
+  dir.create(output.dir)
+} else {
+  warning("Note: The output directory already exists and was overwritten with new output!")
+}
 
-# Load data
+# Load Charcoal data
 Charcoal <- read.csv(file.path(".", "Cores", site.name, paste0(site.name, "_charData.csv")))
 char.series <- Charcoal[ , 6]
 char.params <- Charcoal[ , 1:5]
