@@ -4,11 +4,6 @@
 #' CharAnalysis reads in a data object or a filename and uses it to 
 #' parameterize the detection of charcoal peaks from background values.
 #'
-#' @importFrom RJSONIO fromJSON
-#' @param x Optional parameter for a \code{site}, \code{dataset}, or \code{dataset_list}.
-#' @author Philip Higuera \email{phiguera@@uidaho.edu}
-#' @return This command returns either object of class \code{"try-error"}' (see \code{\link{try}}) definined by the error returned from the Neotoma API call, or an object of class \code{charanalysis}, containing a set of objects:
-#'
 #'  \item{ \code{charcoal} }{}
 #'  \item{ \code{char.thresh} }{}}
 #'  \item{ \code{pre.treatment} }{}
@@ -26,14 +21,66 @@
 #' @keywords IO connection
 #' @export
 
-CharAnalysis <- function(x){                      }
+#CharAnalysis <- function(site.name="CO", runname=NULL)
+#{  
 
+# Parameters that should go into main function, used to test here the code
+site.name <- "CO"
+#runname <- NULL
+runname <- "1"
+
+#### Load packages
 require(paleofire)
 
+#### Determine input directory
+input.dir <- file.path("..", "Cores", site.name)
 
-# 1. Load data
-load("data/CO_charData.RData")
+#### Create output directory
+if (is.null(runname)) {
+output.dir <- file.path(".", "Cores", site.name, "output")
+} else {
+  output.dir <- file.path(".", "Cores", site.name, paste0("output", runname))
+}
+dir.create(output.dir)
+
+
+# Load data
+Charcoal <- read.csv(file.path(".", "Cores", site.name, paste0(site.name, "_charData.csv")))
+char.series <- Charcoal[ , 6]
+char.params <- Charcoal[ , 1:5]
+
+# Load Parameters file
+Params   <- read.csv(file.path(".", "Cores", site.name, paste0(site.name, "_charParams.csv")),
+                     header=T,
+                     colClasses = c("NULL", "factor", "numeric", "NULL", "NULL"))
+
+# Extract data from Parameters file
+zones <- Params[1:9, ]
+zones <- na.omit(zones)
+
+zones <- zones[which(complete.cases(zones)), ]
+zones <- zones[ ,2]
+
+yr.interp     <- if(Params[10, 2] == 0) {
+  yr.interp = NULL
+}
+char.tr       <- Params[11, 2]
+char.tr.meth  <- Params[12, 2]
+char.smooth   <- Params[13, 2]
+cPeak         <- Params[14, 2]
+thresh.type   <- Params[15, 2]
+thresh.meth   <- Params[16, 2]
+thresh.values <- Params[17:20, 2]
+minCountP     <- Params[21, 2]
+peakFrequ     <- Params[22, 2]
+
 
 # 2. Pretreatment
+Charcoal.I <- pretreatment(params = char.params, serie = char.series, Int = T,
+                           first <- zones[1], last <- zones[length(zones)],
+                           yrInterp = yr.interp)
 
-# 3. 
+# 3. Smoothing to get Char background
+
+
+#}
