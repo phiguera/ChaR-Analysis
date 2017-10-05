@@ -105,7 +105,7 @@ rm(char.params, char.series)
 
 # 3. Smooth Charcoal.I to estimate Low-frequency trends (i.e. Char.background) ####
 cat('\n (3) Smoothing resampled CHAR to estimate low-frequency trends...')
-cat('\n     and calculating peak CHAR')
+cat('\n     and calculating peak CHAR...')
 
 # Get data needed
 yr.interp <- Charcoal.I$yrInterp
@@ -206,8 +206,13 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
   }
   
   if (cPeak == 1) {
-  Charcoal.peak <- Charcoal.I$accI - charAccIS[ ,char.sm.meth]
+    Charcoal.peak <- Charcoal.I$accI - charAccIS[ ,char.sm.meth]
+  }
+  if (cPeak == 2) {
+    Charcoal.peak <- Charcoal.I$accI / charAccIS[ ,char.sm.meth]
   }
 
+  cat('\n...done.')
+  
 
 #}
