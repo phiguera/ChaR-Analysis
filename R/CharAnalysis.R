@@ -214,5 +214,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
 
   cat('\n...done.')
   
-
+  ## Define possible threshold for peak identification
+  cat("(4) Defining possible thresholds for peak identification...")
+  
 #}
