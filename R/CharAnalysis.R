@@ -91,6 +91,7 @@ Charcoal.I <- pretreatment(params = char.params, serie = char.series, Int = T,
 
 # 3. Smooth Charcoal.I to estimate Low-frequency trends (i.e. Char.background)
 cat('\n (3) Smoothing resampled CHAR to estimate low-frequency trends...')
+cat('\n     and calculating peak CHAR')
 
 
 }
