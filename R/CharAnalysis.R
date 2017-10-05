@@ -115,21 +115,23 @@ span <- n.smooth/length(Charcoal.I$accI)
 # Prepare empty data.frame
 charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
 
-# Lowess
-  charAccIS[ ,1] <- lowess(x=Charcoal.I$accI, f=span, iter = 3)$y
+# # Lowess
+#   charAccIS[ ,1] <- lowess(x=Charcoal.I$accI, f=span, iter = 3)$y
 
 # Loess with default options
   in.loess <- data.frame(Charcoal.I$ybpI, Charcoal.I$accI)
-  charAccIS[ ,2] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
+  charAccIS[ ,1] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
                           span = span)$fitted
   
 # Robust Loess
-  charAccIS[ ,3] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
+  charAccIS[ ,2] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
                      span = span, degree = 2, family="symmetric",
                      control=loess.control(iterations=4))$fitted
 
+  rm(in.loess)
+  
 # Moving average
-  charAccIS[ ,4] <- runmean(x=Charcoal.I$accI, k=n.smooth, alg="exact", endrule="mean",
+  charAccIS[ ,3] <- runmean(x=Charcoal.I$accI, k=n.smooth, alg="exact", endrule="mean",
                             align="center")
 
 # Running median
@@ -139,11 +141,14 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
     s.smooth.rmed <- n.smooth
   }
   r <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
-  charAccIS[ ,5] <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
+  charAccIS[ ,4] <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
+  
+  rm(s.smooth.rmed)
   
 # Running mode
+  # To be done!
   
-  
+
   
 # Plot raw char and smoothed series
   # Set axis limits
@@ -200,10 +205,9 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
     warning('Cannot calculate C_peak when C_background values = 0; change parameters.')
   }
   
-  # if (c.Peak == 1) {
-  # Charcoal.peak <- Charcoal.I$acc - 
-#}
-
+  if (cPeak == 1) {
+  Charcoal.peak <- Charcoal.I$accI - charAccIS[ ,char.sm.meth]
+  }
 
 
 #}
