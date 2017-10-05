@@ -21,13 +21,14 @@
 #' @keywords IO connection
 #' @export
 
-#CharAnalysis <- function(site.name="CO", runname=NULL)
-#{  
+CharAnalysis <- function(site.name="CO", runname=NULL)
+{  
 
-# Parameters that should go into main function, used to test here the code
-site.name <- "CO"
+# Parameters that should go into main function, used to test here the code...
+  # SHOULD BE DELETED ONCE EVERYTHING IS READY
+#site.name <- "CO"
 #runname <- NULL
-runname <- "1"
+#runname <- "1"
 
 #### Load packages
 require(paleofire)
@@ -80,11 +81,13 @@ peakFrequ     <- Params[22, 2]
 
 
 # 2. Pretreatment
+cat('(2) Pretreating charcoal data...')
 Charcoal.I <- pretreatment(params = char.params, serie = char.series, Int = T,
                            first <- zones[1], last <- zones[length(zones)],
                            yrInterp = yr.interp)
 
-# 3. Smoothing to get Char background
+# 3. Smooth Charcoal.I to estimate Low-frequency trends (i.e. Char.background)
+cat('(3) Smoothing resampled CHAR to estimate low-frequency trends...')
 
 
-#}
+}
