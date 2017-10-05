@@ -22,9 +22,10 @@
 #' #' @export
 #' 
 
-## CharAnalysis <- function(site.name="CO", runname=NULL)# {  
+#CharAnalysis <- function(site.name="CO", runname=NULL) {  
+
 ## Parameters that should go into main function, used to test here the code...
-  ## SHOULD BE DELETED ONCE EVERYTHING IS READY
+## SHOULD BE DELETED ONCE EVERYTHING IS READY
 rm(list=ls())
 setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
 site.name <- "CO"
@@ -51,7 +52,7 @@ output.dir <- file.path(".", site.name, "output")
 if (!dir.exists(output.dir)) {
   dir.create(output.dir)
 } else {
-  warning("Note: The output directory already exists and was overwritten with new output!")
+  warning(paste("Note: The output directory", output.dir, "/n...already exists and was overwritten with new output!"))
 }
 
 # 1. Load Charcoal data ####
@@ -151,6 +152,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
 
   
 # Plot raw char and smoothed series
+  
   # Set axis limits
   x.min <- floor(min(Charcoal.I$ybpI)/100) * 100
   x.max <- ceiling(max(Charcoal.I$ybpI)/100) * 100
@@ -166,7 +168,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
   # Plot
   pdf(paste0(output.dir, "/01_pretreatment.pdf"))
   par(mfrow=c(2,1), mar=c(0.5, 4, 0.5, 1), oma=c(5,1,1,1), cex=0.7)
-  plot(Charcoal.I$ageTop, Charcoal.I$acc, type="h", col=grey(0.90), xlim=x.lim, ylim=y.lim,
+  plot(Charcoal.I$ageTop, Charcoal.I$acc, type="h", col=grey(0.7), xlim=x.lim, ylim=y.lim,
        xlab="time (cal yr. BP)", ylab="CHAR (# cm^-2 yr^-1)", axes=F)
   par(new=T)
   plot(Charcoal.I$ybpI, Charcoal.I$accI, type="s", lwd=0.5, xlim=x.lim, ylim=y.lim,
@@ -183,7 +185,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
        xlab="", ylab="CHAR (# cm^-2 yr^-1)", lwd=1.5, axes=F)
   polygon(x=c(rev(Charcoal.I$ybpI), Charcoal.I$ybpI),
           y=c(rep(0, length(Charcoal.I$accI)), Charcoal.I$accI),
-          col=gray(0.90), border=T, lwd=0.5)
+          col=gray(0.7), border=T, lwd=0.5)
   lines(Charcoal.I$ybpI, charAccIS[ ,1], type="l", col="red", lwd=1.5)
   lines(Charcoal.I$ybpI, charAccIS[ ,2], type="l", col="green", lwd=1.5)
   lines(Charcoal.I$ybpI, charAccIS[ ,3], type="l", col="blue", lwd=1.5)
@@ -214,7 +216,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
 
   cat('\n...done.')
   
-  ## Define possible threshold for peak identification
+  ## 4. Define possible threshold for peak identification
   cat("(4) Defining possible thresholds for peak identification...")
   
 #}
