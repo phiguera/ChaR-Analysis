@@ -35,6 +35,7 @@ runname <- "1"
 #### Load packages
 require(paleofire) # function: pretreatment()
 require(caTools) # function: runmean()
+require(mclust)
 
 # 0. Setup directories ####
 
@@ -219,4 +220,73 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
   ## 4. Define possible threshold for peak identification
   cat("(4) Defining possible thresholds for peak identification...")
   
+  if  (threshType == 2) {  # If threshold is defined locally...
+    
+    # [CharThresh] = CharThreshLocal(Charcoal,...
+    #                                Smoothing, PeakAnalysis, site, Results);
+    # based on PH 'CharThreshLocal.m'
+    # Determines a threshold value for each interpolated sample, based on the
+    # distribution of CHAR values within the selected window (yr) and either
+    # a Gaussian mixture model or the assumption that the noise component 
+    # of the peak charcoal record (C_peak) is normally distributed 
+    # around 0 (if C_peak is defined by residuals)
+    # or 1 (if C_peak is defined by ratios).
+    
+    # Create space for local variables
+    threshYr <- char.sm.yr # [yr] Years over which to define threshold
+    
+    CharThresh.pos <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak),
+                                        ncol=length(thresh.values))) # space for threshold values
+    CharThresh.neg <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak),
+                                        ncol=length(thresh.values))) # Space for negative thres.values
+    muHat <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak), ncol=2)) # Space for mean of noise distribution
+    sigmaHat <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak), ncol=2)) # Space for standard deviation of noise distribution
+    propN <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak), ncol=2)) # Space for proportion of each Cluster-identified distribution
+    CharThresh.SNI <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak), ncol=1)) # Space for SNI
+    CharThresh.GOF <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak), ncol=1)) # Space for Goodness-of-fit
+    
+    # SELECT Charcoal.peak VALUES TO EVALUATE, BASED ON Smoothing.yr
+    for (i in 1:length(Charcoal.peak)) {  #For each value in Charcoal.peak, find the threshold.
+    #i=1 
+     cat(paste0("Calculating ", i, "th local threshold of ", length(Charcoal.peak)))
+
+      if (i < round(0.5*(threshYr/yr.interp))+1) { # First 'threshYr' samples.
+      #         X = Charcoal.peak(1:round(0.5*(threshYr/r))); % Pre June 2009.
+      #         X = Charcoal.peak(1:round(threshYr/r)); % Modified, June 2009, PEH.
+      X <- Charcoal.peak[1:round(0.5*(threshYr/yr.interp))+i] # Modified, % June 2009, PEH.
+      }
+      if (i > (length(Charcoal.peak)-round(0.5*(threshYr/yr.interp)))) {  # Last 'threshYr' samples.
+      #             X = Charcoal.peak(length(Charcoal.peak)-...
+      #                 round((threshYr/r)):end);   % Pre June 2009.
+      X <- Charcoal.peak[(i-round(0.5*(threshYr/yr.interp))):length(Charcoal.peak)]   # Modified, June 2009, PEH.
+                                      # As recommended by RK, this uses samples from 
+                                      # a half-window before i, all the way to end of record.
+      } else {
+        X <- Charcoal.peak[i-round(0.5*(threshYr/yr.interp)):i+round(0.5*(threshYr/yr.interp))] # All samples between first and last 'thrshYr' samples.
+      }
+    }
+    
+
+  ## ESTIMATE LOCAL NOISE DISTRIBUTION
+    if (thresh.meth == 3) { # Estimate noise distribution with
+                            # Guassian mixture model
+      if (sum(X) == 0) {
+    cat("NOTE: All C_peak values = 0; cannot fit noise distribution.")
+    cat("\n      Mean and standard deviation forced to equal 0.") 
+    cat("\n      Consider longer smoothing window or alternative for") 
+    cat("\n      threshMethod parameter.")
+    muHat[i,i] <- 0
+    sigmaHat[i,i] <- 10^-100
+    propN[i,i] <- 0
+    } else {
+      # muHat[i,i] = sigmaHat[i,i] = temp = propN[i,i] <- 
+        m <- Mclust(data=X, G=2)  # Estimate mean and standard
+        plot(m)
+    # deviation of noise distribution using the CLUSTER Gaussian 
+    # mixture model:
+     # http://cobweb.ecn.purdue.edu/~bouman/software/cluster/
+    }
+    }
+    
+    
 #}
