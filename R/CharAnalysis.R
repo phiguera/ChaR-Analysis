@@ -26,6 +26,7 @@ CharAnalysis <- function(site.name="CO", runname=NULL)
 
 # Parameters that should go into main function, used to test here the code...
   # SHOULD BE DELETED ONCE EVERYTHING IS READY
+#setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
 #site.name <- "CO"
 #runname <- NULL
 #runname <- "1"
@@ -34,13 +35,14 @@ CharAnalysis <- function(site.name="CO", runname=NULL)
 require(paleofire)
 
 #### Determine input directory
-input.dir <- file.path("..", "Cores", site.name)
+input.dir <- file.path("..", site.name)
 
 #### Create output directory
 if (is.null(runname)) {
 output.dir <- file.path(".", "Cores", site.name, "output")
+output.dir <- file.path(".", site.name, "output")
 } else {
-  output.dir <- file.path(".", "Cores", site.name, paste0("output", runname))
+  output.dir <- file.path(".", site.name, paste0("output", runname))
 }
 
 if (!dir.exists(output.dir)) {
@@ -50,12 +52,13 @@ if (!dir.exists(output.dir)) {
 }
 
 # Load Charcoal data
-Charcoal <- read.csv(file.path(".", "Cores", site.name, paste0(site.name, "_charData.csv")))
+cat(' (1) Reading input files...')
+Charcoal <- read.csv(file.path(".", site.name, paste0(site.name, "_charData.csv")))
 char.series <- Charcoal[ , 6]
 char.params <- Charcoal[ , 1:5]
 
 # Load Parameters file
-Params   <- read.csv(file.path(".", "Cores", site.name, paste0(site.name, "_charParams.csv")),
+Params   <- read.csv(file.path(".", site.name, paste0(site.name, "_charParams.csv")),
                      header=T,
                      colClasses = c("NULL", "factor", "numeric", "NULL", "NULL"))
 
@@ -81,13 +84,13 @@ peakFrequ     <- Params[22, 2]
 
 
 # 2. Pretreatment
-cat('(2) Pretreating charcoal data...')
+cat('\n (2) Pretreating charcoal data...')
 Charcoal.I <- pretreatment(params = char.params, serie = char.series, Int = T,
                            first <- zones[1], last <- zones[length(zones)],
                            yrInterp = yr.interp)
 
 # 3. Smooth Charcoal.I to estimate Low-frequency trends (i.e. Char.background)
-cat('(3) Smoothing resampled CHAR to estimate low-frequency trends...')
+cat('\n (3) Smoothing resampled CHAR to estimate low-frequency trends...')
 
 
 }
