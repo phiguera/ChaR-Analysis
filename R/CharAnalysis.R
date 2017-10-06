@@ -217,7 +217,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
 
   cat('\n...done.')
   
-  ## 4. Define possible threshold for peak identification
+## 4. Define possible threshold for peak identification ####
   cat("(4) Defining possible thresholds for peak identification...")
   
   if  (threshType == 2) {  # If threshold is defined locally...
@@ -275,20 +275,32 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
     cat("\n      Mean and standard deviation forced to equal 0.") 
     cat("\n      Consider longer smoothing window or alternative for") 
     cat("\n      threshMethod parameter.")
-    muHat[i,i] <- 0
-    sigmaHat[i,i] <- 10^-100
-    propN[i,i] <- 0
+    muHat[i, ] <- 0
+    sigmaHat[i, ] <- 10^-100
+    propN[i, ] <- 0
     } else {
-      # muHat[i,i] = sigmaHat[i,i] = temp = propN[i,i] <- 
-        m <- Mclust(data=X, G=2)  # Estimate mean and standard
-        plot(m)
-    # deviation of noise distribution using the CLUSTER Gaussian 
-    # mixture model:
-     # http://cobweb.ecn.purdue.edu/~bouman/software/cluster/
+      # temp
+      m <- densityMclust(data=X, G=2)
+      # deviation of noise distribution using the Gaussian mixture model
+      # implemented in the 'mclust' R package. Didn't check if it is exactly comparable to
+      # CLUSTER GMM as from http://cobweb.ecn.purdue.edu/~bouman/software/cluster/
+      
+      # NOT run: plots density of two components with default plotting function: 
+      #plot(m, what="density", data=X, breaks=10)
+      #summary(m, parameters=T, classification=T)
+      
+      muHat[i, ] <- m$parameters$mean
+      sigmaHat[i, ] <- cbind( sqrt(m$parameters$variance$sigmasq))
+      propN[i, ] <- m$parameters$pro
+      
+      if (muHat[i,1] == muHat[i,2]) {
+        warning('Poor fit of Gaussian mixture model')
+      }
+
     }
     }
     
     
   }
     
-#}
+#} # end loop for each Charcoal.peak
