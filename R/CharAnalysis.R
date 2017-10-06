@@ -57,10 +57,11 @@ if (!dir.exists(output.dir)) {
 }
 
 # 1. Load Charcoal data ####
-cat(' (1) Reading input files...')
+cat(' (1) Reading charcoal-data file...')
 Charcoal <- read.csv(file.path(".", site.name, paste0(site.name, "_charData.csv")))
 
 # Load Parameters file
+cat('     ...and reading parameters file...')
 Params   <- read.csv(file.path(".", site.name, paste0(site.name, "_charParams.csv")),
                      header=T,
                      colClasses = c("NULL", "factor", "numeric", "NULL", "NULL"))
