@@ -138,12 +138,11 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
                             align="center")
 
 # Running median
-  if (n.smooth %% 2 == 0) {
+  if (n.smooth %% 2 == 0) { # if n.smooth is not an odd number
     s.smooth.rmed <- n.smooth-1
   } else {
     s.smooth.rmed <- n.smooth
   }
-  r <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
   charAccIS[ ,4] <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
   
   rm(s.smooth.rmed)
@@ -184,7 +183,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
   mtext(paste("a) ", site.name, ": C.raw and C.interpolated", sep=''), cex=0.8, line=-4)
   
   plot(Charcoal.I$ybpI, Charcoal.I$accI, type="s", xlim=x.lim, ylim=y.lim,
-       xlab="", ylab="CHAR (# cm^-2 yr^-1)", lwd=1.5, axes=F)
+       xlab="", ylab="CHAR (# cm^-2 yr^-1)", lwd=1, axes=F)
   polygon(x=c(rev(Charcoal.I$ybpI), Charcoal.I$ybpI),
           y=c(rep(0, length(Charcoal.I$accI)), Charcoal.I$accI),
           col=gray(0.7), border=T, lwd=0.5)
@@ -289,5 +288,7 @@ charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
     }
     }
     
+    
+  }
     
 #}
