@@ -329,9 +329,10 @@
       # (Cnoise = CHAR samples less-than or equal to the threshold value) for this time window
       if ( length(noise_i) > 3) {
         ksX <- noise_i # Cnoise
-        ksBin <- c( min(ksX), range(ksX)/100, max(ksX))
-        ksCdf <- rnorm(n=ksBin, mean=muHat[i,1], sd=sigmaHat[i,1]) # fitted noise distribution
-        ksP <- ks.test(x=ksX, y=ksCdf)$p.value
+        # ksBin <- c( min(ksX), range(ksX)/100, max(ksX)) # not used here, but was present in Matlab...?
+        ksBin <- quantile(ksX) # replaces Matlab line above with this one...
+        ksCdf <- pnorm(q=ksBin, mean=muHat[i,1], sd=sigmaHat[i,1]) # fitted noise distribution
+        ksP <- ks.test(x=ksX, y=ksCdf, ...=ksBin)$p.value 
         CharThresh.GOF[i, ] = ksP
       }
       
