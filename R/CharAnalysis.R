@@ -22,15 +22,15 @@
 #' #' @export
 #' 
 
-CharAnalysis <- function(site.name="CO", runname=NULL) {  
+#CharAnalysis <- function(site.name="CO", runname=NULL) {  
   
   ## Parameters that should go into main function, used to test here the code...
   ## SHOULD BE DELETED ONCE EVERYTHING IS READY
-  # rm(list=ls())
-  # setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
-  # site.name <- "CO"
-  # runname <- NULL
-  # runname <- "1"
+  rm(list=ls())
+  setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
+  site.name <- "CO"
+  runname <- NULL
+  runname <- "1"
   
   #### Load packages
   require(paleofire) # function: pretreatment()
@@ -317,17 +317,23 @@ CharAnalysis <- function(site.name="CO", runname=NULL) {
       sig_i <- X[which(X > qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1]))]
       noise_i <- X[which(X <= qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1]))]
       
+      # SNI calculation based on Kelly et al. (2011).
       if (length(sig_i) > 0) {
-        CharThresh.SNI[i] <- (1/length(sig_i)) * sum((sig_i - mean(noise_i)) / sd(noise_i)) *
+        CharThresh.SNI[i, ] <- (1/length(sig_i)) * sum((sig_i - mean(noise_i)) / sd(noise_i)) *
           ((length(noise_i)-2)/length(noise_i))
       } else {
-        CharThresh.SNI[i] <- 0
+        CharThresh.SNI[i, ] <- 0
       }
       
-      
-      # Evaluate goodness-of-fit between modeled noise distribution and 
-      # Charcoal.peak data for this time window
-      
+      # Evaluate goodness-of-fit between modeled noise distribution and Cnoise samples
+      # (Cnoise = CHAR samples less-than or equal to the threshold value) for this time window
+      if ( length(noise_i) > 3) {
+        ksX <- noise_i # Cnoise
+        ksBin <- c( min(ksX), range(ksX)/100, max(ksX))
+        ksCdf <- rnorm(n=ksBin, mean=muHat[i,1], sd=sigmaHat[i,1]) # fitted noise distribution
+        ksP <- ks.test(x=ksX, y=ksCdf)$p.value
+        CharThresh.GOF[i, ] = ksP
+      }
       
       
     } # end loop for each Charcoal.peak
@@ -335,4 +341,4 @@ CharAnalysis <- function(site.name="CO", runname=NULL) {
     
   } # end part 4. Define possible threshold for peak identification 
   
-}
+#}
