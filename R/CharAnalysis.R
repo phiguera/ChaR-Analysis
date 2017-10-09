@@ -327,6 +327,7 @@
       } else {
         CharThresh.SNI[i, ] <- 0
       }
+      colnames(CharThresh.SNI) [1] <- "SNI"
       
       # Evaluate goodness-of-fit between modeled noise distribution and Cnoise samples
       # (Cnoise = CHAR samples less-than or equal to the threshold value) for this time window
@@ -338,6 +339,7 @@
         ksP <- ks.test(x=noise_i, y="pnorm", mean=muHat[i,1], sd=sigmaHat[i,1])$p.value
         CharThresh.GOF[i, ] = ksP
       }
+      colnames(CharThresh.GOF) [1] <- "GOF"
       
       # PLOT SELECTED Charcoal.peak DISTRIBUTIONS
 
@@ -382,6 +384,14 @@
       replayPlot(my.plots[[k]])
     }
     dev.off()
+    
+    ## Smooth thresholds with Loess smoother
+    CharThresh.SNI$sSNI <- loess(formula = CharThresh.SNI[ ,1] ~ Charcoal.I$ybpI, span = span)$fitted
+    # CharThresh.SNI (CharThresh.SNI < 0,1) = 0; # Matlab code...what does this mean?
+    for (i in 1:length(thresh.values)) {
+      CharThresh.pos[ ,i] <- loess(formula = CharThresh.pos[ ,i] ~ Charcoal.I$ybpI, span = span)$fitted
+      CharThresh.neg[ ,i] <- loess(formula = CharThresh.neg[ ,i] ~ Charcoal.I$ybpI, span = span)$fitted
+    }
     
   } # end part 4. Define possible threshold for peak identification 
   
