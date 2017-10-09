@@ -342,39 +342,39 @@
       colnames(CharThresh.GOF) [1] <- "GOF"
       
       # PLOT SELECTED Charcoal.peak DISTRIBUTIONS
-
+      
       
       if (any(i == num.plots)) {
-      par(mfrow=c(1,1))
-      h <- hist(x=X, breaks=50, plot=F)
-      d <- hist(X, breaks=50, plot=F)$density
-      pdf1 <- dnorm(x=d, mean=muHat[i, 1], sd=sigmaHat[i, 1])
-      
-      plot(h, freq=F, col="grey", border="grey", xlim=c(min(h$breaks), max(h$breaks)),
-           ylab="Density", xlab='',
-           main=paste(Charcoal.I$ybpI[i], "yr BP"))
-      par(new=T)
-      pdf1 <- curve(dnorm(x=x, mean=muHat[i, 1], sd=sigmaHat[i, 1]),
-                   from=min(h$breaks), to=max(h$breaks),
-                   ylim=c(0, max(d)), type="l", col="blue", lwd=1.5, axes=F, ylab='', xlab='')
-      par(new=T)
-      pdf2 <- curve(dnorm(x=x, mean=muHat[i, 2], sd=sigmaHat[i, 2]),
-                   from=min(h$breaks), to=max(h$breaks),
-                   ylim=c(0, max(d)), type="l", col="orange", lwd=1.5, axes=F, ylab='', xlab='')
-      par(new=T)
-      lines(x=c(qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1]),
-           qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1])), y=c(0, max(d)),
-           type="l", col="red", lwd=1.5)
-      mtext(text=paste0("SNIi= ", round(CharThresh.SNI[i, ], digits=2),
-                   "\nKS p-val= ", round(CharThresh.GOF[i, ], digits=2)),
-            side=3, las=0, line=-2)
-      
-      my.plots[[j]] <- recordPlot()
-      j<- j+1
+        par(mfrow=c(1,1))
+        h <- hist(x=X, breaks=50, plot=F)
+        d <- hist(X, breaks=50, plot=F)$density
+        pdf1 <- dnorm(x=d, mean=muHat[i, 1], sd=sigmaHat[i, 1])
+        
+        plot(h, freq=F, col="grey", border="grey", xlim=c(min(h$breaks), max(h$breaks)),
+             ylab="Density", xlab='',
+             main=paste(Charcoal.I$ybpI[i], "yr BP"))
+        par(new=T)
+        pdf1 <- curve(dnorm(x=x, mean=muHat[i, 1], sd=sigmaHat[i, 1]),
+                      from=min(h$breaks), to=max(h$breaks),
+                      ylim=c(0, max(d)), type="l", col="blue", lwd=1.5, axes=F, ylab='', xlab='')
+        par(new=T)
+        pdf2 <- curve(dnorm(x=x, mean=muHat[i, 2], sd=sigmaHat[i, 2]),
+                      from=min(h$breaks), to=max(h$breaks),
+                      ylim=c(0, max(d)), type="l", col="orange", lwd=1.5, axes=F, ylab='', xlab='')
+        par(new=T)
+        lines(x=c(qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1]),
+                  qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1])), y=c(0, max(d)),
+              type="l", col="red", lwd=1.5)
+        mtext(text=paste0("SNIi= ", round(CharThresh.SNI[i, ], digits=2),
+                          "\nKS p-val= ", round(CharThresh.GOF[i, ], digits=2)),
+              side=3, las=0, line=-2)
+        
+        my.plots[[j]] <- recordPlot()
+        j<- j+1
       }
       
       
-      } # end loop for each Charcoal.peak
+    } # end loop for each Charcoal.peak
     
     # Print pdf with selected plots that were saved at the end of the loop above
     pdf(paste0(output.dir, '/02_threshold_determination.pdf'), onefile=TRUE, paper="a4")
