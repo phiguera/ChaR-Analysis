@@ -256,9 +256,13 @@
     CharThresh.SNI <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak), ncol=1)) # Space for SNI
     CharThresh.GOF <- data.frame(matrix(data=NA, nrow=length(Charcoal.peak), ncol=1)) # Space for Goodness-of-fit
     
+    # Set variables and space for plots
+    j <- 1
+    num.plots <- seq(from=round(1+(n.smooth/2)), to=length(Charcoal.peak), by=n.smooth)
+    my.plots <- vector(length(num.plots), mode='list')
+    
     # SELECT Charcoal.peak VALUES TO EVALUATE, BASED ON Smoothing.yr
     for (i in 1:length(Charcoal.peak)) {  #For each value in Charcoal.peak, find the threshold.
-      #i=17
       cat(paste0("Calculating ", i, "th local threshold of ", length(Charcoal.peak)))
       
       if (i < round(0.5*(threshYr/yr.interp))+1) { # First 'threshYr' samples.
@@ -290,14 +294,13 @@
           sigmaHat[i, ] <- 10^-100
           propN[i, ] <- 0
         } else {
-          # temp
           m <- densityMclust(data=X, G=2)
           # deviation of noise distribution using the Gaussian mixture model
           # implemented in the 'mclust' R package. Didn't check if it is exactly comparable to
           # CLUSTER GMM as from http://cobweb.ecn.purdue.edu/~bouman/software/cluster/
           
           # NOTRUN: plots density of two components with default plotting function: 
-          #plot(m, what="density", data=X, breaks=10)
+          #plot(m, what="density", data=X, breaks=50)
           #summary(m, parameters=T, classification=T)
           
           muHat[i, ] <- m$parameters$mean
@@ -327,18 +330,58 @@
       
       # Evaluate goodness-of-fit between modeled noise distribution and Cnoise samples
       # (Cnoise = CHAR samples less-than or equal to the threshold value) for this time window
-      if ( length(noise_i) > 3) {
-        ksX <- noise_i # Cnoise
-        # ksBin <- c( min(ksX), range(ksX)/100, max(ksX)) # not used here, but was present in Matlab...?
-        ksBin <- quantile(ksX) # replaces Matlab line above with this one...
-        ksCdf <- pnorm(q=ksBin, mean=muHat[i,1], sd=sigmaHat[i,1]) # fitted noise distribution
-        ksP <- ks.test(x=ksX, y=ksCdf, ...=ksBin)$p.value 
+      # NB: with ks.test(), 'y' can be a character string naming a continuous (cumulative) distribution function,
+      # or such a function (e.g. "pnorm"). In this case, a one-sample test is carried out of the
+      # null hypothesis that the distribution function which generated x is distribution y
+      # with parameters specified by mean and sd...
+      if (length(noise_i) > 3) {
+        ksP <- ks.test(x=noise_i, y="pnorm", mean=muHat[i,1], sd=sigmaHat[i,1])$p.value
         CharThresh.GOF[i, ] = ksP
       }
       
+      # PLOT SELECTED Charcoal.peak DISTRIBUTIONS
+
       
-    } # end loop for each Charcoal.peak
+      if (any(i == num.plots)) {
+      par(mfrow=c(1,1))
+      h <- hist(x=X, breaks=50, plot=F)
+      d <- hist(X, breaks=50, plot=F)$density
+      pdf1 <- dnorm(x=d, mean=muHat[i, 1], sd=sigmaHat[i, 1])
+      
+      plot(h, freq=F, col="grey", border="grey", xlim=c(min(h$breaks), max(h$breaks)),
+           ylab="Density", xlab='',
+           main=paste(Charcoal.I$ybpI[i], "yr BP"))
+      par(new=T)
+      pdf1 <- curve(dnorm(x=x, mean=muHat[i, 1], sd=sigmaHat[i, 1]),
+                   from=min(h$breaks), to=max(h$breaks),
+                   ylim=c(0, max(d)), type="l", col="blue", lwd=1.5, axes=F, ylab='', xlab='')
+      par(new=T)
+      pdf2 <- curve(dnorm(x=x, mean=muHat[i, 2], sd=sigmaHat[i, 2]),
+                   from=min(h$breaks), to=max(h$breaks),
+                   ylim=c(0, max(d)), type="l", col="orange", lwd=1.5, axes=F, ylab='', xlab='')
+      par(new=T)
+      lines(x=c(qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1]),
+           qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1])), y=c(0, max(d)),
+           type="l", col="red", lwd=1.5)
+      mtext(text=paste0("SNIi= ", round(CharThresh.SNI[i, ], digits=2),
+                   "\nKS p-val= ", round(CharThresh.GOF[i, ], digits=2)),
+            side=3, las=0, line=-2)
+      
+      my.plots[[j]] <- recordPlot()
+      j<- j+1
+      }
+      
+      
+      } # end loop for each Charcoal.peak
     
+    # Print pdf with selected plots that were saved at the end of the loop above
+    pdf(paste0(output.dir, '/02_threshold_determination.pdf'), onefile=TRUE, paper="a4")
+    par(mfrow=(c(5,5)), mar = c(0.5,1,0.5,1), oma = c(1,1,0.5,1), cex=0.7)
+    for (k in 1:length(num.plots)) {
+      #k <- 1
+      replayPlot(my.plots[[k]])
+    }
+    dev.off()
     
   } # end part 4. Define possible threshold for peak identification 
   
