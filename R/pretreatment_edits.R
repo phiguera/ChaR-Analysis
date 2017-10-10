@@ -39,10 +39,12 @@
 #' plot(CHAR)
 #' }
 #' 
-pretreatment=function(params,serie,Int=TRUE,first=NULL,last=NULL,yrInterp=NULL){
+pretreatment_edits = function(params,serie,Int=TRUE,first=NULL,last=NULL,yrInterp=NULL) {
   
   ## This is the R version of the CharAnalysis CharPretreatment.m function
-  ## originally develloped by P. Higuera and available at https://sites.google.com/site/charanalysis
+  ## originally implemented by P. Higuera and available at https://sites.google.com/site/charanalysis,
+  ## translated to R language by Olivier Blarquez, with some additional fixes by WF.
+  ##
   ## Requires a matrix as input with the following columns 
   ## CmTop CmBot AgeTop AgeBot Volume 
   ## And a serie from which to calculate accumulation rates 
@@ -201,7 +203,8 @@ pretreatment=function(params,serie,Int=TRUE,first=NULL,last=NULL,yrInterp=NULL){
   # multiply by Charcoal.conI to get Charcoal.accI 
   
   ## Return values 
-  output=structure(list(cmI=cmI,ybpI=ybpI,accI=accI,ageTop=ageTop,ageBot=ageBot,yrInterp=yrInterp,acc=acc))
+  output=structure(list(cmI=cmI, ybpI=ybpI, countI=countI, volI=volI, conI=conI,
+                        accI=accI, ageTop=ageTop, ageBot=ageBot, yrInterp=yrInterp, acc=acc))
   class(output)="CHAR"
   return(output)
   ## Et Hop
