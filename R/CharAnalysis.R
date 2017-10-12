@@ -37,6 +37,9 @@
   require(caTools) # function: runmean()
   require(mclust)
   
+  ## Load R source files
+  source("../R/pretreatment_edits.r")
+  
   # 0. Setup directories ####
   
   #### Determine input directory
@@ -103,9 +106,9 @@
   # Get data and run pretreatment() function
   char.series <- Charcoal[ ,6]
   char.params <- Charcoal[ ,1:5]
-  Charcoal.I <- pretreatment(params = char.params, serie = char.series, Int = T,
-                             first <- zones[1], last <- zones[length(zones)],
-                             yrInterp = yr.interp)
+  Charcoal.I <- pretreatment_edits(params = char.params, serie = char.series, Int = T,
+                                   first <- zones[1], last <- zones[length(zones)],
+                                   yrInterp = yr.interp)
   
   # Clean Environment
   rm(char.params, char.series)
@@ -397,5 +400,160 @@
   cat('...done.')
   
   
+  
+  
+  
+  # 5. Identify charcoal peaks based on possible thresholds ####
+  cat('(5) Identifying peaks based on possible thresholds...')
+  
+  # based on 
+  # function [Charcoal, CharThresh] = CharPeakID (Charcoal,Pretreatment,PeakAnalysis,CharThresh);
+  #   Identifies charcoal samples that exceeds threshold value(s) determined 
+  #   in CharThrshLocal or CharThreshGlobal, and screens these value
+  #   according to the minimum-count criterion selected.
+  
+  ## PEAK IDENTIFICATION ALGORITHM
+  # Create space for peaks, Charcoal.charPeaks
+  if (thresh.type == 2) {
+    # Create Charcoal.charPeaks matrix
+    Charcoal.charPeaks <- as.data.frame(matrix(data=0,
+                                               nrow=length(Charcoal.peak),
+                                               ncol=length(CharThresh.pos)))
+    thresholdValues <- CharThresh.pos
+  }
+  
+  nThresholds <- length(thresholdValues)
+  
+  # Flag values exceeding thresholds
+  for (i in 1:length(Charcoal.peak)) {  # For each value in Charcoal.peak
+    for (j in 1:nThresholds) {          # For each threshold value
+      if (Charcoal.peak[i] > thresholdValues[i, j]) {  # If Charcoal.peak exceeds threshold...
+        Charcoal.charPeaks[i, j] <- 2                  # Charcoal.charPeaks = 2
+      } else {
+        Charcoal.charPeaks[i, j] <- 0                 # else Charcoal.charPeaks = 0
+      }
+    }
+  }
+  
+  # Remove consecutive Charcoal.charPeaks
+  for (i in 1:(length(Charcoal.peak)-1)) { # For each value in Charcoal.peak
+    for (j in 1:nThresholds) {             # For each threshold value
+      if (Charcoal.charPeaks[i, j] > 0
+          && Charcoal.charPeaks[i+1, j] > 0) {  # if two consecutive values > 0 
+        Charcoal.charPeaks[i, j] <- 1           # keep first as 2, mark subsequent as 1
+      }
+    }
+  }
+  
+  for (i in 1:length(Charcoal.peak)) {
+    for (j in 1:nThresholds) {
+      if (Charcoal.charPeaks[i, j] < 2) {    # if value < 2
+        Charcoal.charPeaks[i, j] <- 0        # mark sample as 0 (unflag Charcoal.charPeak)
+      } else {
+        Charcoal.charPeaks[i, j] <- 1        # else (if value=2) mark sample as 1 (flag as Charcoal.charPeak)
+      }
+    }
+  }
+  
+  
+  # Make a variable to hold the threshold value for each peak identified.
+  # i.e. instead of 1 / 0 for peak / no peak, 1 is replaced with the 
+  # threshold value used to identify the peak. This is purely for graphing 
+  # purposes.
+  Charcoal.charPeaksThresh <- Charcoal.charPeaks * 0
+  for (i in 1:length(Charcoal.peak)) {
+    for (j in 1:nThresholds) {
+      Charcoal.charPeaksThresh[i, j] <- Charcoal.charPeaks[i,j] * thresholdValues[i,j]
+    }
+  }
+  
+  
+  ## Minimum-count Analysis
+  mcWindow <- round(150/yr.interp)*yr.interp # [yr] Years before and after a peak to look 
+  # for the min. and max. value
+  d <- as.data.frame(matrix(data=0, nrow=length(Charcoal.I$accI), ncol=nThresholds))
+  CharThresh.minCountP <- as.data.frame(matrix(data=NA, nrow=length(Charcoal.I$acc), ncol=nThresholds))
+  alphaPeak <- minCountP
+  
+  for (j in 1:nThresholds) {
+    peakIndex <- which(Charcoal.charPeaks[ ,j] == 1) # Index to find peak samples
+    
+    if (length(peakIndex) > 1) {                     # Only proceed if there is > 1 peak
+      
+      for (i in 1:length(peakIndex)) {               # For each peak identified...
+        peakYr <- Charcoal.I$ybpI[peakIndex[i]]      # Find age of peak and window around peak
+        windowTime <- c(max(Charcoal.I$ybpI[which(Charcoal.I$ybpI <= peakYr+mcWindow)]),
+                        min(Charcoal.I$ybpI[which(Charcoal.I$ybpI >= peakYr-mcWindow)]))
+        windowTime_in <- c(which(Charcoal.I$ybpI == windowTime[1]), # Index to find range of window ages
+                           which(Charcoal.I$ybpI == windowTime[2]))
+        if (i == 1) {  # find the year of two adjacent Charcoal.charPeaks, unless first peak,
+          #then use windowTime[2] as youngest
+          windowPeak_in <- c(which(Charcoal.I$ybpI == Charcoal.I$ybpI[peakIndex[i+1]]),
+                             which(Charcoal.I$ybpI == windowTime[2]))
+        }
+        if (i == length(peakIndex)) {  # if last peak, then use windowTime[1] as oldest age
+          windowPeak_in <- c(which(Charcoal.I$ybpI == windowTime[1]),
+                             which(Charcoal.I$ybpI == Charcoal.I$ybpI[peakIndex[i-1]]))
+        }
+        if (i > 1 && i < length(peakIndex)) {
+          windowPeak_in <- c(which(Charcoal.I$ybpI == Charcoal.I$ybpI[peakIndex[i+1]]),
+                             which(Charcoal.I$ybpI == Charcoal.I$ybpI[peakIndex[i-1]]))
+        }
+        if (windowTime_in[1] > windowPeak_in[1]) { # thus, if a peak falls within the time window defined by mcWindow
+          windowTime_in[1] <- windowPeak_in[1] # replace the windowTime_in with the windowPeak_in
+        }
+        if (windowTime_in[2] < windowPeak_in[2]) { # thus, if a peak falls within the time window defined by mcWindow
+          windowTime_in[2] <- windowPeak_in[2] # replace the windowTime_in with the windowPeak_in
+        }
+        
+        # Final index value for search window: window (1) defines oldest sample,
+        # window (2) defines youngest sample
+        windowSearch <- c(windowTime_in[1], windowTime_in[2])
+        
+        # search for max and min Charcoal.charPeaks within this window.
+        # [# cm^-3] Max charcoal concentration after peak.
+        countMax <- round(max(Charcoal.I$countI[ windowSearch[2]:peakIndex[i] ]))
+        # Index for location of max count.
+        #countMaxIn <- windowSearch[2]-1 + which(round(Charcoal.I$countI[windowSearch[2]:peakIndex[i]]) == countMax)
+        countMaxIn <- windowSearch[2]-1 + max(which(round(Charcoal.I$countI[windowSearch[2]:peakIndex[i]]) == countMax))
+        # [# cm^-3] Min charcoal concentration before peak.
+        countMin <- round(min(Charcoal.I$countI[peakIndex[i]:windowSearch[1] ]))
+        # Index for location of Min count
+        #countMinIn <- peakIndex[i]-1 + which(round(Charcoal.I$countI[peakIndex[i]:windowSearch[1]]) == countMin)
+        countMinIn <- peakIndex[i]-1 + min(which(round(Charcoal.I$countI[peakIndex[i]:windowSearch[1]]) == countMin))
+        
+        volMax <- Charcoal.I$volI[countMaxIn]
+        volMin <- Charcoal.I$volI[countMinIn]
+        d[peakIndex[i], j] <- (abs(countMin-(countMin+countMax)*
+                                     (volMin/(volMin+volMax)))-0.5)/(sqrt((countMin+countMax)*
+                                                                            (volMin/(volMin+volMax))*(volMax/(volMin+volMax))))
+        
+        # Test statistic
+        CharThresh.minCountP[peakIndex[i], j] <- 1-pt(d[peakIndex[i], j], df=Inf)
+                            # Inverse of the Student's T cdf at 
+                            # CharThresh.minCountP, with Inf degrees of freedom.
+        # From Charster (Gavin 2005):
+        # This is the expansion by Shuie and Bain (1982) of the equation by 
+        # Detre and White (1970) for unequal 'frames' (here, sediment 
+        # volumes). The significance of d is based on the t distribution 
+        # with an infinite degrees of freedom, which is the same as the 
+        # cumulative normal distribution.
+      }
+    }  
+  }
+  
+  # Remove peaks that do not pass the minimum-count screening-peak test
+  for (j in 1:nThresholds) {
+    insig.peaks <- intersect(which(Charcoal.charPeaks[ ,j] > 0),
+                             which(CharThresh.minCountP[ ,j] > alphaPeak)) # Index for
+                  # Charcoal.charPeaks values that also have p-value > alphaPeak...thus insignificant
+    Charcoal.charPeaks[insig.peaks, j] <- 0 # set insignificant peaks to 0
+    Charcoal.charPeaksThresh[insig.peaks, j] <- 0
+  }
+  
+  # Calculate sensitivity indices
+  
+  
+  cat('      ...done.')
   
 #}
