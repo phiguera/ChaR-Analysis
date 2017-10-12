@@ -552,7 +552,15 @@
   }
   
   # Calculate sensitivity indices
-  
+  Charcoal.peaksTotal <- matrix(0, nrow=1, ncol=4)
+  Charcoal.threshFRI <- matrix(NA, nrow=max(colSums(Charcoal.charPeaks))-1, ncol=4)
+  for (j in 1:nThresholds) {
+    Charcoal.peaksTotal[j] <- sum(Charcoal.charPeaks[ ,j])
+    inFRI <- diff(Charcoal.I$ybpI[which(Charcoal.charPeaks[ ,j] == 1)])
+    if (length(inFRI) > 0) {
+      Charcoal.threshFRI[1:length(inFRI), j] <- inFRI
+    }
+  }
   
   cat('      ...done.')
   
