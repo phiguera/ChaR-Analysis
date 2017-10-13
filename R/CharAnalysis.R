@@ -350,12 +350,12 @@
       colnames(CharThresh.GOF) [1] <- "GOF"
       
       # ks.test gives warnings() because ties can be present.
-      if (length(noise_i) > 3) {
-      y <- rnorm(n=10^4, mean=muHat[i,1], sd=sigmaHat[i,1])
-      b <- ks.boot(Tr=noise_i, Co=y)$ks.boot.pvalue
-      CharThresh.GOF[i, ] = b
-      }
-      colnames(CharThresh.GOF) [1] <- "GOF"
+      # if (length(noise_i) > 3) {
+      # y <- rnorm(n=10^4, mean=muHat[i,1], sd=sigmaHat[i,1])
+      # b <- ks.boot(Tr=noise_i, Co=y)$ks.boot.pvalue
+      # CharThresh.GOF[i, ] = b
+      # }
+      # colnames(CharThresh.GOF) [1] <- "GOF"
       
       # PLOT SELECTED Charcoal.peak DISTRIBUTIONS
       
