@@ -36,6 +36,7 @@
   require(paleofire) # function: pretreatment()
   require(caTools) # function: runmean()
   require(mclust)
+  require(Matching)
   
   ## Load R source files
   source("../R/pretreatment_edits.r")
@@ -80,7 +81,9 @@
   zones <- zones[ ,2]
   
   yr.interp     <- if(Params[10,2] == 0) {
-    yr.interp = NULL
+    yr.interp <- NULL
+  } else {
+    yr.interp <- Params[10,2] 
   }
   
   char.tr       <- Params[11,2]
@@ -129,37 +132,39 @@
   charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
   
   # # Lowess
-  #   charAccIS[ ,1] <- lowess(x=Charcoal.I$accI, f=span, iter = 3)$y
+  charAccIS[ ,1] <- lowess(x=Charcoal.I$accI, f=span, iter=0)$y
+  
+  # Robust Lowess
+  charAccIS[ ,2] <- lowess(x=Charcoal.I$accI, f=span, iter=4)$y
   
   # Loess with default options
   in.loess <- data.frame(Charcoal.I$ybpI, Charcoal.I$accI)
-  charAccIS[ ,1] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
+  charAccIS[ ,3] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
                           span = span)$fitted
-  
   # Robust Loess
-  charAccIS[ ,2] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
-                          span = span, degree = 2, family="symmetric",
-                          control=loess.control(iterations=4))$fitted
-  
-  rm(in.loess)
+  # charAccIS[ ,2] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
+  #                         span = span, degree = 2, family="symmetric",
+  #                         control=loess.control(iterations=4))$fitted
+  #
+  # rm(in.loess)
   
   # Moving average
-  charAccIS[ ,3] <- runmean(x=Charcoal.I$accI, k=n.smooth, alg="exact", endrule="mean",
+  charAccIS[ ,4] <- runmean(x=Charcoal.I$accI, k=n.smooth, alg="exact", endrule="mean",
                             align="center")
   
-  # Running median
+  # Moving median
   if (n.smooth %% 2 == 0) { # if n.smooth is not an odd number
     s.smooth.rmed <- n.smooth-1
   } else {
     s.smooth.rmed <- n.smooth
   }
-  charAccIS[ ,4] <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
+  charAccIS[ ,5] <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
   
   rm(s.smooth.rmed)
   
   # Running mode
   # To be done!
-  
+  # charAccIS[ ,6] <- 
   
   
   # Plot raw char and smoothed series
@@ -196,16 +201,16 @@
        xlab="", ylab="CHAR (# cm^-2 yr^-1)", lwd=1, axes=F)
   polygon(x=c(rev(Charcoal.I$ybpI), Charcoal.I$ybpI),
           y=c(rep(0, length(Charcoal.I$accI)), Charcoal.I$accI),
-          col=gray(0.7), border=T, lwd=0.5)
-  lines(Charcoal.I$ybpI, charAccIS[ ,1], type="l", col="red", lwd=1.5)
-  lines(Charcoal.I$ybpI, charAccIS[ ,2], type="l", col="green", lwd=1.5)
-  lines(Charcoal.I$ybpI, charAccIS[ ,3], type="l", col="blue", lwd=1.5)
-  lines(Charcoal.I$ybpI, charAccIS[ ,4], type="l", col="orange", lwd=1.5)
-  lines(Charcoal.I$ybpI, charAccIS[ ,5], type="l", col="mistyrose", lwd=1.5)
+          col="gray50", border=T, lwd=0.5)
+  lines(Charcoal.I$ybpI, charAccIS[ ,1], type="l", col="blue", lwd=1.5)
+  lines(Charcoal.I$ybpI, charAccIS[ ,2], type="l", col="forestgreen", lwd=1.5)
+  lines(Charcoal.I$ybpI, charAccIS[ ,3], type="l", col="green", lwd=1.5)
+  lines(Charcoal.I$ybpI, charAccIS[ ,4], type="l", col="red", lwd=1.5)
+  lines(Charcoal.I$ybpI, charAccIS[ ,5], type="l", col="cyan3", lwd=1.5)
   legend("topleft", inset=c(0,0.2),
-         legend=c("CHARinterpolated", "Lowess","Loess","Robust Loess","Moving average","Running median"),
+         legend=c("CHARinterpolated", "Lowess","Robust Lowess","Loess","Moving average","Moving median"),
          lwd=1.5,
-         col=c("grey", "red","green","blue","orange","mistyrose"),
+         col=c("gray50","blue","forestgreen","green","red","cyan3"),
          border="NA", bty="n", horiz=F, cex=0.7)
   axis(1, at=seq(0, x.max, by=1000))
   axis(2)
@@ -341,6 +346,14 @@
       if (length(noise_i) > 3) {
         ksP <- ks.test(x=noise_i, y="pnorm", mean=muHat[i,1], sd=sigmaHat[i,1])$p.value
         CharThresh.GOF[i, ] = ksP
+      }
+      colnames(CharThresh.GOF) [1] <- "GOF"
+      
+      # ks.test gives warnings() because ties can be present.
+      if (length(noise_i) > 3) {
+      y <- rnorm(n=10^4, mean=muHat[i,1], sd=sigmaHat[i,1])
+      b <- ks.boot(Tr=noise_i, Co=y)$ks.boot.pvalue
+      CharThresh.GOF[i, ] = b
       }
       colnames(CharThresh.GOF) [1] <- "GOF"
       
