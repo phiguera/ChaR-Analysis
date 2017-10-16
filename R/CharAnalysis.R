@@ -152,7 +152,7 @@
   #                         span = span, degree = 2, family="symmetric",
   #                         control=loess.control(iterations=4))$fitted
   #
-  # rm(in.loess)
+  rm(in.loess)
   
   
   # Moving average (Method #3 in Matlab version)
@@ -180,36 +180,38 @@
       # [# cm^-2 yr^-1] smoothed with lowess filter 
   
   
-  # Running mode
-  bin <- 100;  % bins to divide Charcoal.accI into
-  # for i = 1:length(Charcoal.accI)
-  # if i <= round(s/2)  % if 1/2 s twords start
-  # CHARi_t = Charcoal.accI(1:round(s)); % Charcoal.accI for year t
-  # mode_bin = 0:range(CHARi_t)/bin:max(CHARi_t);
-  # [n,x] = hist(CHARi_t,bin);
-  # mode_in = x(find(n == max(n)));
-  # charAccIS(i,5) = median(mode_in);
-  # else
-  #   if  i >= length(Charcoal.accI)-round(s)
-  # CHARi_t = Charcoal.accI(length(Charcoal.accI)-...
-  #                         round(s/2):end);
-  # mode_bin = 0:range(CHARi_t)/bin:max(CHARi_t);
-  # [n,x] = hist(CHARi_t,bin);
-  # mode_in = x(find(n == max(n)));
-  # charAccIS(i,5) = median(mode_in);
-  # else
-  #   CHARi_t = Charcoal.accI(round(i-0.5*s):round(i+0.5*s));
-  # mode_bin = 0:range(CHARi_t)/bin:max(CHARi_t);
-  # [n,x] = hist(Charcoal.accI(round(i-0.5*s):round(i+0.5*s)),...
-  #              bin);
-  # mode_in = x(find(n == max(n)));
-  # charAccIS(i,5) = median(mode_in);
-  # end
-  # end
-  # end
-  # charAccIS(:,5) = smooth(charAccIS(:,5),s,'lowess'); 
-  # % [# cm^-2 yr^-1] smoothed with lowess filter 
-  #   % end running mode smoother
+  # Running mode (Method #5 in Matlab version; translated from Matlab version)
+  bin <- 100  # bins to divide Charcoal.I$accI into
+  for (i in 1:length(Charcoal.I$accI)) {
+    if (i <= round(n.smooth/2)) {                        # if 1/2 s twords start
+      CHARi_t <- Charcoal.I$accI[1:round(n.smooth)]     # Charcoal.accI for year t
+      mode_bin <- c(0, diff(range(CHARi_t))/bin, max(CHARi_t))
+      n.x <- data.frame(n=hist(CHARi_t, bin, plot=F)$c, x=hist(CHARi_t, bin, plot=F)$mids)
+      mode_in <- n.x$x[which(n.x$n == max(n.x$n))]
+      charAccIS[i,6] <- median(mode_in)
+    }
+    if (i >= length(Charcoal.I$accI)-round(n.smooth)) {
+      CHARi_t <- Charcoal.I$accI[length(Charcoal.I$accI)-round(n.smooth/2):
+                                 length(Charcoal.I$accI)]
+      mode_bin <- c(0, diff(range(CHARi_t))/bin, max(CHARi_t))
+      n.x <- data.frame(n=hist(CHARi_t, bin, plot=F)$c, x=hist(CHARi_t, bin, plot=F)$mids)
+      mode_in <- n.x$x[which(n.x$n == max(n.x$n))]
+      charAccIS[i,6] <- median(mode_in)
+    }
+    if (i > round(n.smooth/2) && i < length(Charcoal.I$accI)-round(n.smooth)) {
+      CHARi_t <- Charcoal.I$accI[round(i-0.5*n.smooth):round(i+0.5*n.smooth)]
+      mode_bin <- c(0, diff(range(CHARi_t))/bin, max(CHARi_t))
+      n.x <- data.frame(n=hist(CHARi_t, bin, plot=F)$c, x=hist(CHARi_t, bin, plot=F)$mids)
+      mode_in <- n.x$x[which(n.x$n == max(n.x$n))]
+      charAccIS[i,6] <- median(mode_in)
+    }
+  }
+  charAccIS[ ,6] <- lowess(x=charAccIS[ ,6], f=span, iter=0)$y
+      # [# cm^-2 yr^-1] smoothed with lowess filter
+  
+  rm(bin)
+  
+  # end running mode smoother
   
   
   # Plot raw char and smoothed series
@@ -249,13 +251,14 @@
           col="gray50", border=T, lwd=0.5)
   lines(Charcoal.I$ybpI, charAccIS[ ,1], type="l", col="blue", lwd=1.5)
   lines(Charcoal.I$ybpI, charAccIS[ ,2], type="l", col="forestgreen", lwd=1.5)
-  lines(Charcoal.I$ybpI, charAccIS[ ,3], type="l", col="green", lwd=1.5)
+  lines(Charcoal.I$ybpI, charAccIS[ ,3], type="l", col="green", lwd=1)
   lines(Charcoal.I$ybpI, charAccIS[ ,4], type="l", col="red", lwd=1.5)
   lines(Charcoal.I$ybpI, charAccIS[ ,5], type="l", col="cyan3", lwd=1.5)
+  lines(Charcoal.I$ybpI, charAccIS[ ,6], type="l", col="orange", lwd=1.5)
   legend("topleft", inset=c(0,0.2),
-         legend=c("CHARinterpolated", "Lowess","Robust Lowess","Loess","Moving average","Moving median"),
+         legend=c("CHARinterpolated", "Lowess","Robust Lowess","Loess","Moving average","Moving median","Moving Mode"),
          lwd=1.5,
-         col=c("gray50","blue","forestgreen","green","red","cyan3"),
+         col=c("gray50","blue","forestgreen","green","red","cyan3","orange"),
          border="NA", bty="n", horiz=F, cex=0.7)
   axis(1, at=seq(0, x.max, by=1000))
   axis(2)
