@@ -125,22 +125,28 @@
   
   # Get data needed
   yr.interp <- Charcoal.I$yrInterp
-  n.smooth <- round(char.sm.yr/yr.interp) # % number of data points over which to smooth the record.
-  span <- n.smooth/length(Charcoal.I$accI)
+  n.smooth <- round(char.sm.yr/yr.interp) # number of data points over which to smooth the record.
+                                          # Value rounded when used in smooth functions. = 's' in Matlab version
+  # Proportion of datapoints used for Loess and Lowess smoothing functions:
+  span <- n.smooth/length(Charcoal.I$accI) 
+  
   
   # Prepare empty data.frame
   charAccIS <- data.frame(matrix(NA, nrow=length(Charcoal.I$cmI), ncol=6))
   
-  # # Lowess
+  # # Lowess (Method #1 in Matlab version)
   charAccIS[ ,1] <- lowess(x=Charcoal.I$accI, f=span, iter=0)$y
   
-  # Robust Lowess
+  
+  # Robust Lowess (Method #2 in Matlab version)
   charAccIS[ ,2] <- lowess(x=Charcoal.I$accI, f=span, iter=4)$y
+  
   
   # Loess with default options
   in.loess <- data.frame(Charcoal.I$ybpI, Charcoal.I$accI)
   charAccIS[ ,3] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
                           span = span)$fitted
+  
   # Robust Loess
   # charAccIS[ ,2] <- loess(formula = Charcoal.I.accI ~ Charcoal.I.ybpI, data = in.loess,
   #                         span = span, degree = 2, family="symmetric",
@@ -148,23 +154,64 @@
   #
   # rm(in.loess)
   
-  # Moving average
+  
+  # Moving average (Method #3 in Matlab version)
   charAccIS[ ,4] <- runmean(x=Charcoal.I$accI, k=n.smooth, alg="exact", endrule="mean",
                             align="center")
   
-  # Moving median
-  if (n.smooth %% 2 == 0) { # if n.smooth is not an odd number
-    s.smooth.rmed <- n.smooth-1
-  } else {
-    s.smooth.rmed <- n.smooth
-  }
-  charAccIS[ ,5] <- as.vector(runmed(x=Charcoal.I$accI, k=s.smooth.rmed, endrule="median"))
   
-  rm(s.smooth.rmed)
+  # Moving median (Method #4 in Matlab version; translated from Matlab version)
+  for (i in 1:length(Charcoal.I$accI)) {
+    if (i <= round(n.smooth/2)) { # if 1/2 n.smooth twords start
+      CHARi_t = Charcoal.I$accI[1:round(n.smooth)] # Charcoal.accI for year t
+      charAccIS[i,5] = median(CHARi_t)
+    }
+    if (i >= length(Charcoal.I$accI)-round(n.smooth)) { # if 1/2 s twords end
+      CHARi_t = Charcoal.I$accI[length(Charcoal.I$accI)-round(n.smooth/2):
+                                length(Charcoal.I$accI)]
+      charAccIS[i,5] = median(CHARi_t)
+    }
+    if (i > round(n.smooth/2) && i < length(Charcoal.I$accI)-round(n.smooth)) { # else, you're in the middle of the record
+      CHARi_t = Charcoal.I$accI[round(i-0.5*n.smooth):round(i+0.5*n.smooth)]
+      charAccIS[i,5] = median(CHARi_t)
+    }
+  }
+  charAccIS[ ,5] <- lowess(x=charAccIS[ ,5], f=span, iter=0)$y
+      # [# cm^-2 yr^-1] smoothed with lowess filter 
+  
   
   # Running mode
   # To be done!
-  # charAccIS[ ,6] <- 
+  # % Running mode
+  # bin = 100;  % bins to divide Charcoal.accI into
+  # for i = 1:length(Charcoal.accI)
+  # if i <= round(s/2)  % if 1/2 s twords start
+  # CHARi_t = Charcoal.accI(1:round(s)); % Charcoal.accI for year t
+  # mode_bin = 0:range(CHARi_t)/bin:max(CHARi_t);
+  # [n,x] = hist(CHARi_t,bin);
+  # mode_in = x(find(n == max(n)));
+  # charAccIS(i,5) = median(mode_in);
+  # else
+  #   if  i >= length(Charcoal.accI)-round(s)
+  # CHARi_t = Charcoal.accI(length(Charcoal.accI)-...
+  #                         round(s/2):end);
+  # mode_bin = 0:range(CHARi_t)/bin:max(CHARi_t);
+  # [n,x] = hist(CHARi_t,bin);
+  # mode_in = x(find(n == max(n)));
+  # charAccIS(i,5) = median(mode_in);
+  # else
+  #   CHARi_t = Charcoal.accI(round(i-0.5*s):round(i+0.5*s));
+  # mode_bin = 0:range(CHARi_t)/bin:max(CHARi_t);
+  # [n,x] = hist(Charcoal.accI(round(i-0.5*s):round(i+0.5*s)),...
+  #              bin);
+  # mode_in = x(find(n == max(n)));
+  # charAccIS(i,5) = median(mode_in);
+  # end
+  # end
+  # end
+  # charAccIS(:,5) = smooth(charAccIS(:,5),s,'lowess'); 
+  # % [# cm^-2 yr^-1] smoothed with lowess filter 
+  #   % end running mode smoother
   
   
   # Plot raw char and smoothed series
