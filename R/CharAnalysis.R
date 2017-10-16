@@ -163,17 +163,17 @@
   # Moving median (Method #4 in Matlab version; translated from Matlab version)
   for (i in 1:length(Charcoal.I$accI)) {
     if (i <= round(n.smooth/2)) { # if 1/2 n.smooth twords start
-      CHARi_t = Charcoal.I$accI[1:round(n.smooth)] # Charcoal.accI for year t
-      charAccIS[i,5] = median(CHARi_t)
+      CHARi_t <- Charcoal.I$accI[1:round(n.smooth)] # Charcoal.accI for year t
+      charAccIS[i,5] <- median(CHARi_t)
     }
     if (i >= length(Charcoal.I$accI)-round(n.smooth)) { # if 1/2 s twords end
-      CHARi_t = Charcoal.I$accI[length(Charcoal.I$accI)-round(n.smooth/2):
+      CHARi_t <- Charcoal.I$accI[length(Charcoal.I$accI)-round(n.smooth/2):
                                 length(Charcoal.I$accI)]
-      charAccIS[i,5] = median(CHARi_t)
+      charAccIS[i,5] <- median(CHARi_t)
     }
     if (i > round(n.smooth/2) && i < length(Charcoal.I$accI)-round(n.smooth)) { # else, you're in the middle of the record
-      CHARi_t = Charcoal.I$accI[round(i-0.5*n.smooth):round(i+0.5*n.smooth)]
-      charAccIS[i,5] = median(CHARi_t)
+      CHARi_t <- Charcoal.I$accI[round(i-0.5*n.smooth):round(i+0.5*n.smooth)]
+      charAccIS[i,5] <- median(CHARi_t)
     }
   }
   charAccIS[ ,5] <- lowess(x=charAccIS[ ,5], f=span, iter=0)$y
@@ -181,9 +181,7 @@
   
   
   # Running mode
-  # To be done!
-  # % Running mode
-  # bin = 100;  % bins to divide Charcoal.accI into
+  bin <- 100;  % bins to divide Charcoal.accI into
   # for i = 1:length(Charcoal.accI)
   # if i <= round(s/2)  % if 1/2 s twords start
   # CHARi_t = Charcoal.accI(1:round(s)); % Charcoal.accI for year t
