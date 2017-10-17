@@ -209,7 +209,7 @@
   charAccIS[ ,6] <- lowess(x=charAccIS[ ,6], f=span, iter=0)$y
       # [# cm^-2 yr^-1] smoothed with lowess filter
   
-  rm(bin)
+  rm(bin, CHARi_t, mode_bin, n.x, mode_in)
   
   # end running mode smoother
   
@@ -369,6 +369,8 @@
         }
       }
       
+      rm(m)
+      
       ## Define local threshold, SNI, and GOF
       # Define range of threshold values, plus threshold value selected.
       CharThresh.pos[i, ] <- qnorm(p=thresh.values, mean=muHat[i,1], sd=sigmaHat[i,1])
@@ -411,8 +413,8 @@
       if (any(i == num.plots)) {
         par(mfrow=c(1,1))
         h <- hist(x=X, breaks=50, plot=F)
-        d <- hist(X, breaks=50, plot=F)$density
-        pdf1 <- dnorm(x=d, mean=muHat[i, 1], sd=sigmaHat[i, 1])
+        dens <- hist(X, breaks=50, plot=F)$density
+        pdf1 <- dnorm(x=dens, mean=muHat[i, 1], sd=sigmaHat[i, 1])
         
         plot(h, freq=F, col="grey", border="grey", xlim=c(min(h$breaks), max(h$breaks)),
              ylab="Density", xlab='',
@@ -420,14 +422,14 @@
         par(new=T)
         pdf1 <- curve(dnorm(x=x, mean=muHat[i, 1], sd=sigmaHat[i, 1]),
                       from=min(h$breaks), to=max(h$breaks),
-                      ylim=c(0, max(d)), type="l", col="blue", lwd=1.5, axes=F, ylab='', xlab='')
+                      ylim=c(0, max(dens)), type="l", col="blue", lwd=1.5, axes=F, ylab='', xlab='')
         par(new=T)
         pdf2 <- curve(dnorm(x=x, mean=muHat[i, 2], sd=sigmaHat[i, 2]),
                       from=min(h$breaks), to=max(h$breaks),
-                      ylim=c(0, max(d)), type="l", col="orange", lwd=1.5, axes=F, ylab='', xlab='')
+                      ylim=c(0, max(dens)), type="l", col="orange", lwd=1.5, axes=F, ylab='', xlab='')
         par(new=T)
         lines(x=c(qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1]),
-                  qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1])), y=c(0, max(d)),
+                  qnorm(p=thresh.values[4], mean=muHat[i,1], sd=sigmaHat[i,1])), y=c(0, max(dens)),
               type="l", col="red", lwd=1.5)
         mtext(text=paste0("SNIi= ", round(CharThresh.SNI[i, ], digits=2),
                           "\nKS p-val= ", round(CharThresh.GOF[i, ], digits=2)),
@@ -437,8 +439,9 @@
         j<- j+1
       }
       
-      
     } # end loop for each Charcoal.peak
+    
+    rm(h, dens, pdf1, pdf2, noise_i, sig_i)
     
     # Print pdf with selected plots that were saved at the end of the loop above
     pdf(paste0(output.dir, '/02_threshold_determination.pdf'), onefile=TRUE, paper="a4")
@@ -448,6 +451,8 @@
       replayPlot(my.plots[[k]])
     }
     dev.off()
+    
+    rm(my.plots, num.plots)
     
     ## Smooth thresholds with Loess smoother
     CharThresh.SNI$sSNI <- loess(formula = CharThresh.SNI[ ,1] ~ Charcoal.I$ybpI, span = span)$fitted
@@ -534,7 +539,6 @@
   # for the min. and max. value
   d <- as.data.frame(matrix(data=0, nrow=length(Charcoal.I$accI), ncol=nThresholds))
   CharThresh.minCountP <- as.data.frame(matrix(data=NA, nrow=length(Charcoal.I$acc), ncol=nThresholds))
-  alphaPeak <- minCountP
   
   for (j in 1:nThresholds) {
     peakIndex <- which(Charcoal.charPeaks[ ,j] == 1) # Index to find peak samples
@@ -603,11 +607,13 @@
     }  
   }
   
+  rm(mcWindow, d)
+  
   # Remove peaks that do not pass the minimum-count screening-peak test
   for (j in 1:nThresholds) {
     insig.peaks <- intersect(which(Charcoal.charPeaks[ ,j] > 0),
-                             which(CharThresh.minCountP[ ,j] > alphaPeak)) # Index for
-                  # Charcoal.charPeaks values that also have p-value > alphaPeak...thus insignificant
+                             which(CharThresh.minCountP[ ,j] > minCountP)) # Index for
+                  # Charcoal.charPeaks values that also have p-value > minCountP...thus insignificant
     Charcoal.charPeaks[insig.peaks, j] <- 0 # set insignificant peaks to 0
     Charcoal.charPeaksThresh[insig.peaks, j] <- 0
   }
