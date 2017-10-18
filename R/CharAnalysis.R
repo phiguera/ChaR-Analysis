@@ -45,29 +45,6 @@ minCountP=0.05
 peakFrequ=1000
   
   
-  # # Extract data from Parameters file
-  # zones <- zones[ ,2]
-  # 
-  # yr.interp     <- if(Params[10,2] == 0) {
-  #   yr.interp <- NULL
-  # } else {
-  #   yr.interp <- Params[10,2] 
-  # }
-  # 
-  # char.tr       <- Params[11,2]
-  # char.sm.meth  <- Params[12,2]
-  # char.sm.yr   <- Params[13,2]
-  # cPeak         <- Params[14,2]
-  # thresh.type   <- Params[15,2]
-  # thresh.meth   <- Params[16,2]
-  # thresh.values <- Params[17:20,2]
-  # minCountP     <- Params[21,2]
-  # peakFrequ     <- Params[22,2]
-  # 
-  
-  
-  
-  
   
   
   #### Load packages
@@ -104,40 +81,6 @@ peakFrequ=1000
   # 1. Load Charcoal data ####
   cat(' (1) Reading charcoal-data file...')
   Charcoal <- read.csv(file.path(".", site.name, paste0(site.name, "_charData.csv")))
-  
-  # # Load Parameters file
-  # cat('     ...and reading parameters file...')
-  # Params   <- read.csv(file.path(".", site.name, paste0(site.name, "_charParams.csv")),
-  #                      header=T,
-  #                      colClasses = c("NULL", "factor", "numeric", "NULL", "NULL"))
-  # 
-  # # Extract data from Parameters file
-  # zones <- Params[1:9, ]
-  # zones <- na.omit(zones)
-  # 
-  # zones <- zones[which(complete.cases(zones)), ]
-  # zones <- zones[ ,2]
-  # 
-  # yr.interp     <- if(Params[10,2] == 0) {
-  #   yr.interp <- NULL
-  # } else {
-  #   yr.interp <- Params[10,2] 
-  # }
-  # 
-  # char.tr       <- Params[11,2]
-  # char.sm.meth  <- Params[12,2]
-  # char.sm.yr   <- Params[13,2]
-  # cPeak         <- Params[14,2]
-  # thresh.type   <- Params[15,2]
-  # thresh.meth   <- Params[16,2]
-  # thresh.values <- Params[17:20,2]
-  # minCountP     <- Params[21,2]
-  # peakFrequ     <- Params[22,2]
-  # 
-  # # Clean Environment
-  # rm(Params)
-  
-  
   
   
   
