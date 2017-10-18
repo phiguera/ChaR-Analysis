@@ -22,15 +22,53 @@
 #' #' @export
 #' 
 
-#CharAnalysis <- function(site.name="CO", runname=NULL) {  
+rm(list=ls())
+setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
+
+
+CharAnalysis <- function(site.name="CO", runname="1", zones=c(-51,7500),
+                         yr.interp=15, char.sm.meth=5, char.sm.yr=500,
+                         cPeak=1, thresh.values=c(0.95,0.99,0.999,0.99), minCountP=0.05,
+                         peakFrequ=1000) {
   
-  ## Parameters that should go into main function, used to test here the code...
-  ## SHOULD BE DELETED ONCE EVERYTHING IS READY
-  rm(list=ls())
-  setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
-  site.name <- "CO"
-  runname <- NULL
-  runname <- "1"
+## Parameters that should go into main function, used to test here the code...
+## SHOULD BE DELETED ONCE EVERYTHING IS READY
+site.name="CO"
+runname="1"
+zones=c(-51,7500)
+yr.interp=15
+char.sm.meth=5 # 1=Lowess, 2=Rob.Lowess, 3=Loess, 4=Moving average, 5=Moving median, 6=Moving mode
+char.sm.yr=500
+cPeak=1
+thresh.values=c(0.95,0.99,0.999,0.99)
+minCountP=0.05
+peakFrequ=1000
+  
+  
+  # # Extract data from Parameters file
+  # zones <- zones[ ,2]
+  # 
+  # yr.interp     <- if(Params[10,2] == 0) {
+  #   yr.interp <- NULL
+  # } else {
+  #   yr.interp <- Params[10,2] 
+  # }
+  # 
+  # char.tr       <- Params[11,2]
+  # char.sm.meth  <- Params[12,2]
+  # char.sm.yr   <- Params[13,2]
+  # cPeak         <- Params[14,2]
+  # thresh.type   <- Params[15,2]
+  # thresh.meth   <- Params[16,2]
+  # thresh.values <- Params[17:20,2]
+  # minCountP     <- Params[21,2]
+  # peakFrequ     <- Params[22,2]
+  # 
+  
+  
+  
+  
+  
   
   #### Load packages
   require(paleofire) # function: pretreatment()
@@ -67,37 +105,37 @@
   cat(' (1) Reading charcoal-data file...')
   Charcoal <- read.csv(file.path(".", site.name, paste0(site.name, "_charData.csv")))
   
-  # Load Parameters file
-  cat('     ...and reading parameters file...')
-  Params   <- read.csv(file.path(".", site.name, paste0(site.name, "_charParams.csv")),
-                       header=T,
-                       colClasses = c("NULL", "factor", "numeric", "NULL", "NULL"))
-  
-  # Extract data from Parameters file
-  zones <- Params[1:9, ]
-  zones <- na.omit(zones)
-  
-  zones <- zones[which(complete.cases(zones)), ]
-  zones <- zones[ ,2]
-  
-  yr.interp     <- if(Params[10,2] == 0) {
-    yr.interp <- NULL
-  } else {
-    yr.interp <- Params[10,2] 
-  }
-  
-  char.tr       <- Params[11,2]
-  char.sm.meth  <- Params[12,2]
-  char.sm.yr   <- Params[13,2]
-  cPeak         <- Params[14,2]
-  thresh.type   <- Params[15,2]
-  thresh.meth   <- Params[16,2]
-  thresh.values <- Params[17:20,2]
-  minCountP     <- Params[21,2]
-  peakFrequ     <- Params[22,2]
-  
-  # Clean Environment
-  rm(Params)
+  # # Load Parameters file
+  # cat('     ...and reading parameters file...')
+  # Params   <- read.csv(file.path(".", site.name, paste0(site.name, "_charParams.csv")),
+  #                      header=T,
+  #                      colClasses = c("NULL", "factor", "numeric", "NULL", "NULL"))
+  # 
+  # # Extract data from Parameters file
+  # zones <- Params[1:9, ]
+  # zones <- na.omit(zones)
+  # 
+  # zones <- zones[which(complete.cases(zones)), ]
+  # zones <- zones[ ,2]
+  # 
+  # yr.interp     <- if(Params[10,2] == 0) {
+  #   yr.interp <- NULL
+  # } else {
+  #   yr.interp <- Params[10,2] 
+  # }
+  # 
+  # char.tr       <- Params[11,2]
+  # char.sm.meth  <- Params[12,2]
+  # char.sm.yr   <- Params[13,2]
+  # cPeak         <- Params[14,2]
+  # thresh.type   <- Params[15,2]
+  # thresh.meth   <- Params[16,2]
+  # thresh.values <- Params[17:20,2]
+  # minCountP     <- Params[21,2]
+  # peakFrequ     <- Params[22,2]
+  # 
+  # # Clean Environment
+  # rm(Params)
   
   
   
@@ -287,7 +325,7 @@
   ## 4. Define possible threshold for peak identification ####
   cat("(4) Defining possible thresholds for peak identification...")
   
-  if  (thresh.type == 2) {  # If threshold is defined locally...
+    # Threshold is defined locally...
     
     # [CharThresh] = CharThreshLocal(Charcoal,...
     #                                Smoothing, PeakAnalysis, site, Results);
@@ -340,7 +378,7 @@
       
       
       ## ESTIMATE LOCAL NOISE DISTRIBUTION
-      if (thresh.meth == 3) { # Estimate noise distribution with Guassian mixture model
+        # Estimate noise distribution with Guassian mixture model
         if (sum(X) == 0) {
           cat("NOTE: All C_peak values = 0; cannot fit noise distribution.")
           cat("\n      Mean and standard deviation forced to equal 0.") 
@@ -367,7 +405,6 @@
             warning('Poor fit of Gaussian mixture model')
           }
         }
-      }
       
       rm(m)
       
@@ -462,7 +499,7 @@
       CharThresh.neg[ ,i] <- loess(formula = CharThresh.neg[ ,i] ~ Charcoal.I$ybpI, span = span)$fitted
     }
     
-  } # end part 4. Define possible threshold for peak identification 
+   # end part 4. Define possible threshold for peak identification 
   cat('...done.')
   
   
@@ -480,13 +517,12 @@
   
   ## PEAK IDENTIFICATION ALGORITHM
   # Create space for peaks, Charcoal.charPeaks
-  if (thresh.type == 2) {
+  # For local thresholds only
     # Create Charcoal.charPeaks matrix
     Charcoal.charPeaks <- as.data.frame(matrix(data=0,
                                                nrow=length(Charcoal.peak),
                                                ncol=length(CharThresh.pos)))
     thresholdValues <- CharThresh.pos
-  }
   
   nThresholds <- length(thresholdValues)
   
@@ -631,4 +667,8 @@
   
   cat('      ...done.')
   
-#}
+  output <- list(Charcoal.I[1:6])
+  class(output) <- "ChaR"
+  return(output)
+  
+}
