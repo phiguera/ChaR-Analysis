@@ -22,27 +22,27 @@
 #' #' @export
 #' 
 
-rm(list=ls())
-setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
+# rm(list=ls())
+# setwd('/Users/wfinsing/Documents/GitHub/ChaR-Analysis/Cores')
 
 
-# CharAnalysis <- function(site.name="CO", runname="1", zones=c(-51,7500),
-#                          yr.interp=15, char.sm.meth=5, char.sm.yr=500,
-#                          cPeak=1, thresh.values=c(0.95,0.99,0.999,0.99), minCountP=0.05,
-#                          peakFrequ=1000) {
+CharAnalysis <- function(site.name="CO", runname="1", zones=c(-51,7500),
+                         yr.interp=15, char.sm.meth=5, char.sm.yr=500,
+                         cPeak=1, thresh.values=c(0.95,0.99,0.999,0.99), minCountP=0.05,
+                         peakFrequ=1000) {
   
 ## Parameters that should go into main function, used to test here the code...
 ## SHOULD BE DELETED ONCE EVERYTHING IS READY
-site.name="CO"
-runname="1"
-zones=c(-51,7500)
-yr.interp=15
-char.sm.meth=5 # 1=Lowess, 2=Rob.Lowess, 3=Loess, 4=Moving average, 5=Moving median, 6=Moving mode
-char.sm.yr=500
-cPeak=1
-thresh.values=c(0.95,0.99,0.999,0.99)
-minCountP=0.05
-peakFrequ=1000
+# site.name="CO"
+# runname="1"
+# zones=c(-51,7500)
+# yr.interp=15
+# char.sm.meth=5 # 1=Lowess, 2=Rob.Lowess, 3=Loess, 4=Moving average, 5=Moving median, 6=Moving mode
+# char.sm.yr=500
+# cPeak=1
+# thresh.values=c(0.95,0.99,0.999,0.99)
+# minCountP=0.05
+# peakFrequ=1000
   
   
   
@@ -610,8 +610,8 @@ peakFrequ=1000
   
   cat('      ...done.')
   
-  # output <- list(Charcoal.I[1:6])
-  # class(output) <- "ChaR"
-  # return(output)
+  output <- structure(list(Charcoal.I[1:6]))
+  class(output) <- "ChaR"
+  assign(x="output", value=output, envir=globalenv())
   
-#}
+}
