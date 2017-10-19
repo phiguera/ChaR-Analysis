@@ -1,4 +1,4 @@
-"cmTop","cmBot","ageTop (yr BP)","AgeBot (yr BP)","CharVol (cm3)","CharCount  (#)"
+cmTop,cmBot,ageTop (yr BP),AgeBot (yr BP),CharVol (cm3),CharCount  (#)
 0.5,1,-42,-24,3,8
 1,1.5,-24,5,3,18
 1.5,2,5,62,5,34
