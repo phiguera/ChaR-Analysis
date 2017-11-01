@@ -39,7 +39,7 @@
 #' plot(CHAR)
 #' }
 #' 
-pretreatment_edits = function(params,serie,Int=TRUE,first=NULL,last=NULL,yrInterp=NULL) {
+pretreatment_full = function(params,serie,Int=TRUE,first=NULL,last=NULL,yrInterp=NULL) {
   
   ## This is the R version of the CharAnalysis CharPretreatment.m function
   ## originally implemented by P. Higuera and available at https://sites.google.com/site/charanalysis,
